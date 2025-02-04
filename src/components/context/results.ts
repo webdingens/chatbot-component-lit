@@ -1,8 +1,8 @@
-import {createContext} from '@lit/context';
+import { createContext } from "@lit/context";
 
-export type Results = {
+export type Result = {
   text: string;
-  type: 'assistant' | 'user';
-}[]
+  type: "assistant" | "user";
+};
 
-export const resultsContext = createContext<Results>('results');
+export const resultsContext = createContext<Result[]>("results");

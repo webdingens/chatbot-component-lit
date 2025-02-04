@@ -1,0 +1,50 @@
+:host {
+  display: block;
+  margin-top: 2.2em;
+
+  /* &,
+  * {
+    outline: 1px solid red;
+  } */
+}
+
+form {
+  display: flex;
+  align-items: center;
+  background: inherit;
+  gap: 5px;
+}
+
+label {
+  flex-grow: 1;
+  gap: 5px;
+  display: flex;
+  align-items: center;
+
+  position: relative;
+
+  span {
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    margin-bottom: .2em;
+  }
+}
+
+input {
+  border: 1px solid #666;
+  background: inherit;
+  color: inherit;
+  flex-grow: 1;
+  font-size: 18px;
+  line-height: 1.2;
+  padding: .2em .3em;
+}
+
+button {
+  text-transform: uppercase;
+  background: #222;
+  border: none;
+  font-weight: 500;
+  align-self: stretch;
+}

@@ -1,60 +1,89 @@
-import { LitElement, css, html } from 'lit'
-import { customElement, property } from 'lit/decorators.js'
-import './prompt-form'
-import './results'
-import { resultsContext } from './context/results'
-import { ContextProvider } from '@lit/context'
+import { LitElement, css, html } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import "./prompt-form";
+import "./results";
+import { Result, resultsContext } from "./context/results";
+import { ContextProvider } from "@lit/context";
+
+import styles from "./chatbot.css?raw";
+import { fetchingContext } from "./context/fetching";
+import { getResultFromPrompt } from "./utils/getResultFromPrompt";
 
 /**
  * An example element.
- *
- * @slot - This element has a slot
- * @csspart button - The button
  */
-@customElement('cb-chatbot')
+@customElement("cb-chatbot")
 export class CbChatbot extends LitElement {
-  /**
-   * The number of times the button has been clicked.
-   */
-  @property({ type: Number })
-  count = 0
+  @property({ type: String })
+  endpoint?: string;
 
-  private readonly _results = new ContextProvider(this, {context: resultsContext, initialValue: [{text: 'Hi there! Please tell us what you want to know!', type: 'assistant' }]});
+  @property({ type: String })
+  context?: string;
+
+  private readonly _results = new ContextProvider(this, {
+    context: resultsContext,
+    initialValue: [
+      {
+        text: "System: Hi there! Please tell us what you want to know!",
+        type: "assistant",
+      },
+    ],
+  });
+
+  private readonly _fetching = new ContextProvider(this, {
+    context: fetchingContext,
+    initialValue: false,
+  });
 
   render() {
     return html`
-      <div>Test??</div>
-      <slot></slot>
+      <h2>Chatbot</h2>
       <cb-results></cb-results>
       <cb-prompt-form @newPrompt=${this._handleNewPrompt}></cb-prompt-form>
-    `
+    `;
   }
 
-  private _handleNewPrompt(e: CustomEvent<{ prompt: string }>) {
-    this._results.setValue([...this._results.value, {
-      text: e.detail.prompt,
-      type: 'user'
-    }])
-    this.requestUpdate()
+  private async _handleNewPrompt(e: CustomEvent<{ prompt: string }>) {
+    if (this._fetching.value) return;
+    await this.fetchResponse(e.detail.prompt);
   }
 
-  static styles = css`
-    :host {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      color: #000;
+  private async fetchResponse(prompt: string) {
+    if (!this.canMakeRequest()) return;
 
-      border-radius: 5px;
-      padding: 1em;
-    }
-  `
+    this.setFetchingState(true);
+
+    this.addResult({
+      text: `Frage: ${prompt}`,
+      type: "user",
+    });
+
+    const result = await getResultFromPrompt(
+      prompt,
+      this.endpoint!,
+      this.context
+    );
+    this.addResult(result);
+    this.setFetchingState(false);
+  }
+
+  private canMakeRequest(): boolean {
+    return typeof this.endpoint != "undefined" && !this._fetching.value;
+  }
+
+  private setFetchingState(isFetching: boolean): void {
+    this._fetching.setValue(isFetching);
+  }
+
+  private addResult(result: Result): void {
+    this._results.setValue([...this._results.value, result]);
+  }
+
+  static styles = css([styles] as any);
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'cb-chatbot': CbChatbot
+    "cb-chatbot": CbChatbot;
   }
 }
